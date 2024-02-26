@@ -245,6 +245,8 @@ fun Shop.getCustomersSortedByOrders(): List<Customer> =
 // Find all the different cities the customers are from
 fun Shop.getCustomerCities(): Set<City> =
         customers.map { it.city }.toSet()
+![изображение](https://github.com/vihuhool/labs/assets/69204363/599a9811-0b6e-42aa-9508-5dc3866327f9)
+
 
 // Find the customers living in a given city
 fun Shop.getCustomersFrom(city: City): List<Customer> =
