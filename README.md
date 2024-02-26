@@ -252,3 +252,4 @@ fun Shop.getCustomerCities(): Set<City> =
 fun Shop.getCustomersFrom(city: City): List<Customer> =
         customers.filter { it.city == city }
 ```
+![изображение](https://github.com/vihuhool/labs/assets/69204363/5d5c06ce-a851-4fbe-a692-9b951dd02fd5)
