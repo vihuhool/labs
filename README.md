@@ -468,3 +468,196 @@ class EffectiveDate<R> : ReadWriteProperty<R, MyDate> {
 }
 ```
 ![изображение](https://github.com/vihuhool/labs/assets/69204363/ff1910de-1e83-41b9-a27c-2e1e3709c2b3)
+
+# Builders
+## Function literals with receiver
+```
+fun task(): List<Boolean> {
+    val isEven: Int.() -> Boolean = { this % 2 == 0 }
+    val isOdd: Int.() -> Boolean = { this % 2 != 0 }
+
+    return listOf(42.isOdd(), 239.isOdd(), 294823098.isEven())
+}
+```
+![изображение](https://github.com/vihuhool/labs/assets/69204363/e4b10d30-4b11-4adb-8d75-49b927cd5352)
+
+## String and map builders
+```
+import java.util.HashMap
+
+fun <K, V> buildMutableMap(build: HashMap<K, V>.() -> Unit): Map<K, V> {
+    val map = HashMap<K, V>()
+    map.build()
+    return map
+}
+
+fun usage(): Map<Int, String> {
+    return buildMutableMap {
+        put(0, "0")
+        for (i in 1..10) {
+            put(i, "$i")
+        }
+    }
+}
+```
+![изображение](https://github.com/vihuhool/labs/assets/69204363/8130fe9e-7f69-4927-9e59-1504efa8af7a)
+
+
+## The function apply
+```
+fun <T> T.myApply(f: T.() -> Unit): T {
+    f()
+    return this
+}
+
+fun createString(): String {
+    return StringBuilder().myApply {
+        append("Numbers: ")
+        for (i in 1..10) {
+            append(i)
+        }
+    }.toString()
+}
+
+fun createMap(): Map<Int, String> {
+    return hashMapOf<Int, String>().myApply {
+        put(0, "0")
+        for (i in 1..10) {
+            put(i, "$i")
+        }
+    }
+}
+```
+![изображение](https://github.com/vihuhool/labs/assets/69204363/ea5f1a5e-a967-48ac-b533-126d114c1bdb)
+
+## HTML builder
+```
+fun renderProductTable(): String {
+    return html {
+        table {
+            tr(color = getTitleColor()) {
+                td {
+                    text("Product")
+                }
+                td {
+                    text("Price")
+                }
+                td {
+                    text("Popularity")
+                }
+            }
+            val products = getProducts()
+            for ((index, product) in products.withIndex()) {
+                tr {
+                    td(color = getCellColor(index, 0)) {
+                        text(product.description)
+                    }
+                    td(color = getCellColor(index, 1)) {
+                        text(product.price)
+                    }
+                    td(color = getCellColor(index, 2)) {
+                        text(product.popularity)
+                    }
+                }
+            }
+        }
+    }.toString()
+}
+
+fun getTitleColor() = "#b9c9fe"
+fun getCellColor(index: Int, column: Int) = if ((index + column) % 2 == 0) "#dce4ff" else "#eff2ff"
+```
+![изображение](https://github.com/vihuhool/labs/assets/69204363/b0e6595b-ee55-4a2b-b7e9-08de55c671ce)
+
+## Builders: how they work
+```
+import Answer.*
+
+enum class Answer { a, b, c }
+
+val answers = mapOf<Int, Answer?>(
+        1 to c, 2 to b, 3 to b, 4 to c
+)
+```
+![изображение](https://github.com/vihuhool/labs/assets/69204363/3724db1d-59ca-4c25-b9ea-4d3fb5490a2f)
+
+## Builders implementation
+```
+open class Tag(val name: String) {
+    protected val children = mutableListOf<Tag>()
+
+    override fun toString() =
+            "<$name>${children.joinToString("")}</$name>"
+}
+
+fun table(init: TABLE.() -> Unit): TABLE {
+    val table = TABLE()
+    table.init()
+    return table
+}
+
+class TABLE : Tag("table") {
+    fun tr(init: TR.() -> Unit) {
+        val tr = TR()
+        tr.init()
+        children += tr
+    }
+}
+
+class TR : Tag("tr") {
+    fun td(init: TD.() -> Unit) {
+        children += TD().apply(init)
+    }
+}
+
+class TD : Tag("td")
+
+fun createTable() =
+        table {
+            tr {
+                repeat(2) {
+                    td {
+                    }
+                }
+            }
+        }
+
+fun main() {
+    println(createTable())
+    //<table><tr><td></td><td></td></tr></table>
+}
+```
+![изображение](https://github.com/vihuhool/labs/assets/69204363/d5318d81-148a-43c0-ae19-ec29d97d4f33)
+
+# Generic
+## Generic functions
+```
+import java.util.*
+
+fun <T, C : MutableCollection<T>> Collection<T>.partitionTo(first: C, second: C, predicate: (T) -> Boolean): Pair<C, C> {
+    for (element in this) {
+        if (predicate(element)) {
+            first.add(element)
+        } else {
+            second.add(element)
+        }
+    }
+    return Pair(first, second)
+}
+
+fun partitionWordsAndLines() {
+    val (words, lines) = listOf("a", "a b", "c", "d e")
+            .partitionTo(ArrayList(), ArrayList()) { s -> !s.contains(" ") }
+    check(words == listOf("a", "c"))
+    check(lines == listOf("a b", "d e"))
+}
+
+fun partitionLettersAndOtherSymbols() {
+    val (letters, other) = setOf('a', '%', 'r', '}')
+            .partitionTo(HashSet(), HashSet()) { c -> c in 'a'..'z' || c in 'A'..'Z' }
+    check(letters == setOf('a', 'r'))
+    check(other == setOf('%', '}'))
+}
+```
+![изображение](https://github.com/vihuhool/labs/assets/69204363/4740b409-0f41-40c4-82e1-0e3ee79995d9)
+
